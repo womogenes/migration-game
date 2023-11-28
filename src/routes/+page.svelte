@@ -17,17 +17,18 @@
   onMount(() => {
     const tickInterval = window.setInterval(() => {
       $gameTick++;
-      everyTick();
+      onTick();
     }, 100);
 
     return () => window.clearInterval(tickInterval);
   });
 
   // Things to do every game loop
-  const everyTick = () => {
+  const onTick = () => {
     if ($gameTick % 100 === 50) {
       $logs = [...$logs, $locData.ambientMessages.sample()];
     }
+    $funds.amount *= 1.001;
   };
 
   // Choose a random location to start at
@@ -37,14 +38,33 @@
   );
 
   // Funds
-  const funds = store('funds', { amount: 0, currency: 'USD' });
+  const funds = store('funds', {
+    amount: 1,
+    currency: $locData.currency.code,
+  });
+  $: moneyFormatter = new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: $funds.currency,
+    maximumFractionDigits: 2,
+    minimumFractionDigits: 2,
+  });
+  $: formattedFunds = moneyFormatter.format($funds.amount);
+
+  // Things that happen when you switch locations
+  // I anticipate this is gonna become a huge pain later on
+  const switchLocation = (newLocID) => {
+    const newLocData = allLocData.find((loc) => loc.id === newLocID);
+    let oldCurrency = $locData.currency.conversion;
+    let newCurrency = newLocData.currency.conversion;
+    $funds.amount *= oldCurrency / newCurrency;
+    $funds.currency = newLocData.currency.code;
+  };
 
   // Log messages in left sidebar
   const logs = store('logs', [`Welcome to ${$locData.location.city}.`]);
   const addLog = (message) => {
     $logs = [...$logs, message];
   };
-
   const status = store('status', 'alive');
 
   // UI state things
@@ -69,11 +89,14 @@
 </script>
 
 <!-- Let's add some sound effects :) -->
-{#each $locData.sounds as sound}
-  <audio loop>
-    <source src={sound.url} />
-  </audio>
-{/each}
+
+{#if $locData.sounds}
+  {#each $locData.sounds as sound}
+    <audio loop>
+      <source src={sound.url} />
+    </audio>
+  {/each}
+{/if}
 
 <!-- Main content -->
 <div class="flex w-full max-w-5xl flex-col px-6 pb-3 pt-6">
@@ -101,7 +124,7 @@
     </div>
 
     <!-- Central column, actions -->
-    <div class="flex-grow overflow-x-hidden px-4">
+    <div class="flex-grow select-none overflow-x-hidden px-4">
       <!-- Headings (tabs) -->
       <div class="mb-4 flex divide-x" id="tabs">
         <button
@@ -139,28 +162,47 @@
             >
               Add log
             </button>
-            <button class="btn" on:click={() => ($logs = [])}>Clear logs</button
-            >
+            <button class="btn" on:click={() => ($logs = [])}
+              >Clear logs
+            </button>
           </div>
         {:else if $activeTab === 'portals'}
           <div
-            class="absolute flex w-full flex-col items-start gap-2"
+            class="absolute flex w-full flex-col gap-2"
             in:fly={{ x: '-100%' }}
             out:fly={{ x: '100%' }}
           >
-            <button>Content</button>
+            <!-- Different choices of location to travel to -->
+            {#each allLocData as location}
+              <!-- TODO: Something dramatic needs to happen -->
+              <button
+                class="flex flex-col gap-1 border px-3 py-3 leading-none transition-colors hover:bg-neutral-50 dark:hover:bg-neutral-800"
+                on:click={() => {
+                  switchLocation(location.id);
+                  $locID = location.id;
+                  addLog(`Welcome to ${$locData.location.city}.`);
+                }}
+              >
+                <p class="font-bold">{location.location.city}</p>
+                <p>Country: {location.location.country}</p>
+              </button>
+            {/each}
           </div>
         {/if}
       </div>
     </div>
 
     <!-- Status column -->
-    <div class="flex w-80 flex-col gap-2 leading-none">
+    <div class="flex w-80 select-none flex-col gap-2 leading-none">
       <p>Game tick: {$gameTick}</p>
       <div class="flex flex-col gap-2 border px-2 py-2">
         <p>Location: {$locData.location.city}, {$locData.location.country}</p>
         <p>Status: {$status}</p>
-        <p>Funds: {$funds.amount} {$funds.currency}</p>
+        <p>
+          Funds: <span class="tabular-nums"
+            >{formattedFunds} {$funds.currency}</span
+          >
+        </p>
       </div>
     </div>
   </div>
