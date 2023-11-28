@@ -1,23 +1,59 @@
 <script>
   import { fade } from 'svelte/transition';
-  import { store } from '$lib/store.js';
+  import { derived } from 'svelte/store';
 
-  const logs = store('logs', ['Welcome.']);
+  import { allLocData } from '$lib/locations.js';
+  import { store } from '$lib/store.js';
+  import { onMount } from 'svelte';
+
+  // Utilities
+  Array.prototype.sample = function () {
+    return this[Math.floor(Math.random() * this.length)];
+  };
+
+  // Game tick
+  // Prevent setInterval from running twice with Svelte hot-reloading
+  const gameTick = store('game-tick', 0);
+  onMount(() => {
+    const tickInterval = window.setInterval(() => {
+      $gameTick++;
+      everyTick();
+    }, 500);
+
+    return () => window.clearInterval(tickInterval);
+  });
+
+  // Things to do every game loop
+  const everyTick = () => {
+    if ($gameTick % 20 === 1) {
+      $logs = [...$logs, $locData.ambientMessages.sample()];
+    }
+  };
+
+  // Choose a random location to start at
+  const locID = store('location', 'seattle-usa');
+  const locData = derived(locID, ($locID) =>
+    allLocData.find((locObj) => locObj.id === $locID),
+  );
+
+  const logs = store('logs', [`Welcome to ${$locData.location.city}.`]);
+  const status = store('status', 'alive');
+
   const addLog = (message) => {
     $logs = [...$logs, message];
   };
 </script>
 
-<div class="box-border h-full max-h-screen w-full max-w-4xl px-4 py-4">
-  <div class="flex h-full gap-4">
+<div class="box-border h-full max-h-screen w-full max-w-5xl px-6 py-6">
+  <div class="flex h-full gap-8">
     <!-- Left column, log -->
     <div
-      class="relative flex h-full w-36 flex-col items-start gap-4 overflow-hidden"
+      class="relative flex h-full w-48 select-none flex-col items-start gap-4 overflow-hidden"
     >
-      <div class="flex h-full flex-col-reverse justify-end gap-4" id="log">
+      <div class="flex h-full flex-col-reverse justify-end gap-3" id="log">
         {#each $logs as log}
-          <div transition:fade={{ delay: 100, duration: 300 }}>
-            <p class="leading-none">{log}</p>
+          <div transition:fade={{ duration: 500 }}>
+            <p class="leading-tight">{log}</p>
           </div>
         {/each}
       </div>
@@ -32,22 +68,34 @@
     <div class="flex-grow">
       <h1 class="mb-3 underline">Location</h1>
 
-      <!-- Actions (should eventually change based on tab) -->
-      <button class="btn" on:click={() => ($logs = [])}>Clear logs</button>
-      <button class="btn" on:click={() => addLog($logs.length)}>Add log</button>
+      <div class="flex flex-col items-start gap-2">
+        <button class="btn" on:click={() => localStorage.clear()}
+          >Clear localStorage</button
+        >
+        <button class="btn" on:click={() => ($logs = [])}>Clear logs</button>
+        <button
+          class="btn"
+          on:click={() => addLog($locData.ambientMessages.sample())}
+        >
+          Add log
+        </button>
+      </div>
     </div>
 
-    <!-- Status -->
-    <div></div>
+    <!-- Status column -->
+    <div class="flex w-60 flex-col gap-2 leading-none">
+      <p>Game tick: {$gameTick}</p>
+      <div class="flex flex-col gap-2 border border-black px-4 py-2">
+        <p>Status: {$status}</p>
+        <p>Location: {$locData.location.city}, {$locData.location.country}</p>
+      </div>
+    </div>
   </div>
 </div>
 
 <style lang="postcss">
-  :global(html) {
-    font-size: 16pt;
-  }
-
   .btn {
+    @apply select-none; /* Disallow selecting button text */
     @apply border border-black bg-transparent px-4 py-0.5 hover:underline;
   }
 </style>
