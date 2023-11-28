@@ -4,5 +4,8 @@
 @tailwind components;
 @tailwind utilities;
 
-@layer components {
+@layer base {
+  * {
+    @apply border-black dark:border-neutral-500;
+  }
 }

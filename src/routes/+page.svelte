@@ -25,7 +25,7 @@
 
   // Things to do every game loop
   const everyTick = () => {
-    if ($gameTick % 60 === 1) {
+    if ($gameTick % 100 === 0) {
       $logs = [...$logs, $locData.ambientMessages.sample()];
     }
   };
@@ -68,7 +68,7 @@
 
       <!-- Gradient for vignette effect -->
       <div
-        class="absolute left-0 top-0 h-full w-full bg-gradient-to-t from-white to-transparent to-50%"
+        class="absolute left-0 top-0 h-full w-full bg-gradient-to-t from-white to-transparent to-50% dark:from-neutral-900"
       ></div>
     </div>
 
@@ -99,7 +99,7 @@
     <!-- Status column -->
     <div class="flex w-80 flex-col gap-2 leading-none">
       <p>Game tick: {$gameTick}</p>
-      <div class="flex flex-col gap-2 border border-black px-2 py-2">
+      <div class="flex flex-col gap-2 border px-2 py-2">
         <p>Location: {$locData.location.city}, {$locData.location.country}</p>
         <p>Status: {$status}</p>
         <p>Funds: {$funds.amount} {$funds.currency}</p>
@@ -108,10 +108,10 @@
   </div>
 </div>
 
-<style lang="postcss">
+<style lang="css">
   .btn {
     @apply select-none; /* Disallow selecting button text */
-    @apply border border-black bg-transparent px-4 py-0.5 hover:underline;
+    @apply border bg-transparent px-4 py-0.5 hover:underline;
   }
 
   h1 {
