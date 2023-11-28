@@ -67,6 +67,9 @@
   };
   const status = store('status', 'alive');
 
+  // Modal actions
+  const curModal = store('cur-modal', null);
+
   // UI state things
   let activeTab = store('active-tab', 'city'); // Can be 'main' or 'portals'
 
@@ -98,8 +101,31 @@
   {/each}
 {/if}
 
+<!-- Modal -->
+{#if $curModal}
+  <div
+    class="absolute z-20 flex h-full w-full items-center justify-center bg-neutral-900 bg-opacity-50"
+    transition:fade
+  >
+    <div class="flex w-full max-w-sm flex-col gap-4 border bg-white px-6 py-4">
+      <h1>{$curModal.title}</h1>
+      <div class="flex gap-4">
+        {#each $curModal.actions as action}
+          <button
+            class="btn"
+            on:click={() => {
+              action.action();
+              $curModal = null;
+            }}>{action.label}</button
+          >
+        {/each}
+      </div>
+    </div>
+  </div>
+{/if}
+
 <!-- Main content -->
-<div class="flex w-full max-w-5xl flex-col px-6 pb-3 pt-6">
+<div class="relative flex w-full max-w-5xl flex-col px-6 pb-3 pt-6">
   <div class="flex h-full flex-col gap-4 sm:flex-row">
     <!-- Left column, log -->
     <div
@@ -165,6 +191,26 @@
             <button class="btn" on:click={() => ($logs = [])}
               >Clear logs
             </button>
+            <hr />
+            <button
+              class="btn"
+              on:click={() =>
+                ($curModal = {
+                  title: 'This is a modal title',
+                  actions: [
+                    {
+                      label: 'double funds',
+                      action: () => ($funds.amount *= 2),
+                    },
+                    {
+                      label: 'add 100 funds',
+                      action: () => ($funds.amount += 100),
+                    },
+                  ],
+                })}
+            >
+              Create modal
+            </button>
           </div>
         {:else if $activeTab === 'portals'}
           <div
@@ -193,7 +239,7 @@
     </div>
 
     <!-- Status column -->
-    <div class="flex select-none flex-col gap-2 leading-none sm:w-80">
+    <div class="flex select-none flex-col gap-2 leading-none md:w-80">
       <p>Game tick: {$gameTick}</p>
       <div class="flex flex-col gap-2 border px-2 py-2">
         <p>Location: {$locData.location.city}, {$locData.location.country}</p>
@@ -208,7 +254,7 @@
   </div>
 
   <!-- Game settings/controls -->
-  <div class="self-end text-neutral-700 dark:text-neutral-400">
+  <div class="self-end text-neutral-500 dark:text-neutral-400">
     <button class="hover:underline" on:click={() => ($soundOn = !$soundOn)}>
       sound {$soundOn ? 'on' : 'off'}.
     </button>
@@ -216,6 +262,10 @@
 </div>
 
 <style lang="css">
+  :global(hr) {
+    @apply w-full border-b border-neutral-500;
+  }
+
   .btn {
     @apply select-none; /* Disallow selecting button text */
     @apply border bg-transparent px-4 py-0.5 hover:underline;

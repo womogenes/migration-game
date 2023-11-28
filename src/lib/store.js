@@ -9,8 +9,28 @@ export const store = (id, defaultValue) => {
 
   // This Svelte store syncs with localStorage
   const myStore = writable(
-    (localStorage[id] && JSON.parse(localStorage[id])) || defaultValue,
+    (localStorage[id] && deserialize(localStorage[id])) || defaultValue,
   );
-  myStore.subscribe((value) => localStorage.setItem(id, JSON.stringify(value)));
+  myStore.subscribe((value) => {
+    localStorage.setItem(id, serialize(value));
+  });
   return myStore;
 };
+
+function serialize(obj) {
+  return JSON.stringify(obj, function (key, value) {
+    if (typeof value === 'function') {
+      return value.toString();
+    }
+    return value;
+  });
+}
+
+function deserialize(str) {
+  return JSON.parse(str, function (key, value) {
+    if (typeof value === 'string' && value.indexOf('() =>') === 0) {
+      return new Function(`return ${value}`);
+    }
+    return value;
+  });
+}
