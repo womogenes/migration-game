@@ -3,8 +3,8 @@ export default {
   content: ['./src/**/*.svelte', './src/*.{html,css}'],
   theme: {
     fontSize: {
-      base: '12pt',
-      lg: '13pt',
+      base: '16pt',
+      lg: '17pt',
     },
     fontFamily: {
       sans: ['Times New Roman'],

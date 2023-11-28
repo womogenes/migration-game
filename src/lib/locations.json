@@ -1,6 +1,7 @@
 [
   {
     "id": "seattle-usa",
+    "sounds": [{ "url": "https://www.soundjay.com/nature/rain-07.mp3" }],
     "currency": { "code": "USD", "symbol": "$", "conversion": 1.0 },
     "location": { "city": "Seattle", "country": "United States" },
     "ambientMessages": [

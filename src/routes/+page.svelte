@@ -1,6 +1,6 @@
 <script>
   import { fade } from 'svelte/transition';
-  import { derived } from 'svelte/store';
+  import { derived, writable } from 'svelte/store';
 
   import allLocData from '$lib/locations.json';
   import { store } from '$lib/store.js';
@@ -25,7 +25,7 @@
 
   // Things to do every game loop
   const everyTick = () => {
-    if ($gameTick % 100 === 0) {
+    if ($gameTick % 100 === 50) {
       $logs = [...$logs, $locData.ambientMessages.sample()];
     }
   };
@@ -46,17 +46,42 @@
   };
 
   const status = store('status', 'alive');
+
+  // Purely cosmetic things
+  let soundOn = writable(false);
+  let audioEls;
+  const initializeAudio = () => {
+    audioEls = Array.from(document.querySelectorAll('audio'));
+    audioEls.forEach((audioEl) => (audioEl.volume = 0.1));
+    soundOn.subscribe(($soundOn) => {
+      if ($soundOn) {
+        // Play all the sounds
+        audioEls.forEach((audioEl) => audioEl.play());
+      } else {
+        audioEls.forEach((audioEl) => audioEl.pause());
+      }
+    });
+  };
+  onMount(initializeAudio);
 </script>
 
-<div class="box-border h-full max-h-screen w-full max-w-5xl px-6 py-6">
-  <div class="flex h-full gap-8">
+<!-- Let's add some sound effects :) -->
+{#each $locData.sounds as sound}
+  <audio loop>
+    <source src={sound.url} />
+  </audio>
+{/each}
+
+<!-- Main content -->
+<div class="flex w-full max-w-5xl flex-col px-6 pb-3 pt-6">
+  <div class="flex h-full flex-col gap-8 sm:flex-row">
     <!-- Left column, log -->
     <div
-      class="relative flex h-full w-48 select-none flex-col items-start gap-4 overflow-hidden"
+      class="relative flex max-h-[calc(100vh-5em)] select-none flex-col items-start gap-4 overflow-hidden sm:w-48"
     >
-      <div class="flex h-full flex-col-reverse justify-end gap-3" id="log">
+      <div class="flex flex-col-reverse justify-end gap-3 sm:h-full" id="log">
         {#each $logs as log}
-          <div transition:fade={{ duration: 500 }}>
+          <div transition:fade={{ delay: 250, duration: 500 }}>
             {#if log.message}
               <p class="leading-tight">{log.message}</p>
             {:else}
@@ -106,6 +131,13 @@
       </div>
     </div>
   </div>
+
+  <!-- Game settings/controls -->
+  <div class="self-end text-neutral-700 dark:text-neutral-400">
+    <button class="hover:underline" on:click={() => ($soundOn = !$soundOn)}>
+      sound {$soundOn ? 'on' : 'off'}.
+    </button>
+  </div>
 </div>
 
 <style lang="css">
@@ -116,5 +148,9 @@
 
   h1 {
     @apply text-lg;
+  }
+
+  :global(html) {
+    font-size: 16pt;
   }
 </style>
