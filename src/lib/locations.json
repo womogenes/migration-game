@@ -1,6 +1,7 @@
 [
   {
     "id": "seattle-usa",
+    "currency": { "code": "USD", "symbol": "$", "conversion": 1.0 },
     "location": { "city": "Seattle", "country": "United States" },
     "ambientMessages": [
       { "message": "The sound of seagulls fills the air." },
@@ -27,6 +28,7 @@
   },
   {
     "id": "new-york-usa",
+    "currency": { "code": "USD", "symbol": "$", "conversion": 1.0 },
     "location": { "city": "New York", "country": "United States" },
     "ambientMessages": [
       { "message": "The city that never sleeps lives up to its name as the streets buzz with activity at all hours." },
@@ -54,6 +56,7 @@
   {
     "id": "tokyo-japan",
     "location": { "city": "Tokyo", "country": "Japan" },
+    "currency": { "code": "JPY", "symbol": "¥", "conversion": 0.0067 },
     "ambientMessages": [
       { "message": "小さなラーメン屋で人々が辛抱強く列を作り、煮込みスープの香りが街中に漂う。", "translation": "People queue patiently at a small ramen shop, the aroma of simmering broth wafting into the street." },
       { "message": "オフィスワーカーが賑やかなプラットフォームで列車を待ちながら、急いでおにぎりをかじっています。", "translation": "Office workers hurriedly munch on onigiri while waiting for their train on a bustling platform." },

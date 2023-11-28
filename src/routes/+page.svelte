@@ -36,6 +36,9 @@
     allLocData.find((locObj) => locObj.id === $locID),
   );
 
+  // Funds
+  const funds = store('funds', { amount: 0, currency: 'USD' });
+
   // Log messages in left sidebar
   const logs = store('logs', [`Welcome to ${$locData.location.city}.`]);
   const addLog = (message) => {
@@ -97,8 +100,9 @@
     <div class="flex w-80 flex-col gap-2 leading-none">
       <p>Game tick: {$gameTick}</p>
       <div class="flex flex-col gap-2 border border-black px-2 py-2">
-        <p>Status: {$status}</p>
         <p>Location: {$locData.location.city}, {$locData.location.country}</p>
+        <p>Status: {$status}</p>
+        <p>Funds: {$funds.amount} {$funds.currency}</p>
       </div>
     </div>
   </div>
