@@ -2,7 +2,7 @@
   import { fade } from 'svelte/transition';
   import { derived } from 'svelte/store';
 
-  import { allLocData } from '$lib/locations.js';
+  import allLocData from '$lib/locations.json';
   import { store } from '$lib/store.js';
   import { onMount } from 'svelte';
 
@@ -18,14 +18,14 @@
     const tickInterval = window.setInterval(() => {
       $gameTick++;
       everyTick();
-    }, 500);
+    }, 100);
 
     return () => window.clearInterval(tickInterval);
   });
 
   // Things to do every game loop
   const everyTick = () => {
-    if ($gameTick % 20 === 1) {
+    if ($gameTick % 60 === 1) {
       $logs = [...$logs, $locData.ambientMessages.sample()];
     }
   };
@@ -36,12 +36,13 @@
     allLocData.find((locObj) => locObj.id === $locID),
   );
 
+  // Log messages in left sidebar
   const logs = store('logs', [`Welcome to ${$locData.location.city}.`]);
-  const status = store('status', 'alive');
-
   const addLog = (message) => {
     $logs = [...$logs, message];
   };
+
+  const status = store('status', 'alive');
 </script>
 
 <div class="box-border h-full max-h-screen w-full max-w-5xl px-6 py-6">
@@ -53,7 +54,11 @@
       <div class="flex h-full flex-col-reverse justify-end gap-3" id="log">
         {#each $logs as log}
           <div transition:fade={{ duration: 500 }}>
-            <p class="leading-tight">{log}</p>
+            {#if log.message}
+              <p class="leading-tight">{log.message}</p>
+            {:else}
+              <p class="leading-tight">{log}</p>
+            {/if}
           </div>
         {/each}
       </div>
@@ -69,21 +74,27 @@
       <h1 class="mb-3 underline">{$locData.location.city}</h1>
 
       <div class="flex flex-col items-start gap-2">
-        <button class="btn" on:click={() => localStorage.clear()}
-          >Clear localStorage</button
+        <button
+          class="btn"
+          on:click={() => {
+            localStorage.clear();
+            window.location.reload();
+          }}
         >
-        <button class="btn" on:click={() => ($logs = [])}>Clear logs</button>
+          Clear localStorage
+        </button>
         <button
           class="btn"
           on:click={() => addLog($locData.ambientMessages.sample())}
         >
           Add log
         </button>
+        <button class="btn" on:click={() => ($logs = [])}>Clear logs</button>
       </div>
     </div>
 
     <!-- Status column -->
-    <div class="flex w-60 flex-col gap-2 leading-none">
+    <div class="flex w-80 flex-col gap-2 leading-none">
       <p>Game tick: {$gameTick}</p>
       <div class="flex flex-col gap-2 border border-black px-2 py-2">
         <p>Status: {$status}</p>
