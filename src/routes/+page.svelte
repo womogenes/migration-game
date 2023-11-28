@@ -1,5 +1,5 @@
 <script>
-  import { fade } from 'svelte/transition';
+  import { fade, fly } from 'svelte/transition';
   import { derived, writable } from 'svelte/store';
 
   import allLocData from '$lib/locations.json';
@@ -47,6 +47,9 @@
 
   const status = store('status', 'alive');
 
+  // UI state things
+  let activeTab = store('active-tab', 'city'); // Can be 'main' or 'portals'
+
   // Purely cosmetic things
   let soundOn = writable(false);
   let audioEls;
@@ -74,14 +77,14 @@
 
 <!-- Main content -->
 <div class="flex w-full max-w-5xl flex-col px-6 pb-3 pt-6">
-  <div class="flex h-full flex-col gap-8 sm:flex-row">
+  <div class="flex h-full flex-col gap-4 sm:flex-row">
     <!-- Left column, log -->
     <div
       class="relative flex max-h-[calc(100vh-5em)] select-none flex-col items-start gap-4 overflow-hidden sm:w-48"
     >
       <div class="flex flex-col-reverse justify-end gap-3 sm:h-full" id="log">
         {#each $logs as log}
-          <div transition:fade={{ delay: 250, duration: 500 }}>
+          <div transition:fade={{ delay: 150, duration: 500 }}>
             {#if log.message}
               <p class="leading-tight">{log.message}</p>
             {:else}
@@ -98,26 +101,56 @@
     </div>
 
     <!-- Central column, actions -->
-    <div class="flex-grow">
-      <h1 class="mb-3 underline">{$locData.location.city}</h1>
+    <div class="flex-grow overflow-x-hidden px-4">
+      <!-- Headings (tabs) -->
+      <div class="mb-4 flex divide-x" id="tabs">
+        <button
+          class="pr-3 leading-none {$activeTab === 'city' && 'underline'}"
+          on:click={() => ($activeTab = 'city')}
+          >{$locData.location.city}</button
+        >
+        <button
+          class="pl-3 pr-3 leading-none {$activeTab === 'portals' &&
+            'underline'}"
+          on:click={() => ($activeTab = 'portals')}>Portals</button
+        >
+      </div>
 
-      <div class="flex flex-col items-start gap-2">
-        <button
-          class="btn"
-          on:click={() => {
-            localStorage.clear();
-            window.location.reload();
-          }}
-        >
-          Clear localStorage
-        </button>
-        <button
-          class="btn"
-          on:click={() => addLog($locData.ambientMessages.sample())}
-        >
-          Add log
-        </button>
-        <button class="btn" on:click={() => ($logs = [])}>Clear logs</button>
+      <!-- Content (three panels) -->
+      <div class="relative flex w-full">
+        {#if $activeTab === 'city'}
+          <div
+            class="absolute flex w-full flex-col items-start gap-2"
+            in:fly={{ x: '-100%' }}
+            out:fly={{ x: '100%' }}
+          >
+            <button
+              class="btn"
+              on:click={() => {
+                localStorage.clear();
+                window.location.reload();
+              }}
+            >
+              Clear localStorage
+            </button>
+            <button
+              class="btn"
+              on:click={() => addLog($locData.ambientMessages.sample())}
+            >
+              Add log
+            </button>
+            <button class="btn" on:click={() => ($logs = [])}>Clear logs</button
+            >
+          </div>
+        {:else if $activeTab === 'portals'}
+          <div
+            class="absolute flex w-full flex-col items-start gap-2"
+            in:fly={{ x: '-100%' }}
+            out:fly={{ x: '100%' }}
+          >
+            <button>Content</button>
+          </div>
+        {/if}
       </div>
     </div>
 
