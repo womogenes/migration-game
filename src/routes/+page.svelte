@@ -66,7 +66,7 @@
 
     <!-- Central column, actions -->
     <div class="flex-grow">
-      <h1 class="mb-3 underline">Location</h1>
+      <h1 class="mb-3 underline">{$locData.location.city}</h1>
 
       <div class="flex flex-col items-start gap-2">
         <button class="btn" on:click={() => localStorage.clear()}
@@ -85,7 +85,7 @@
     <!-- Status column -->
     <div class="flex w-60 flex-col gap-2 leading-none">
       <p>Game tick: {$gameTick}</p>
-      <div class="flex flex-col gap-2 border border-black px-4 py-2">
+      <div class="flex flex-col gap-2 border border-black px-2 py-2">
         <p>Status: {$status}</p>
         <p>Location: {$locData.location.city}, {$locData.location.country}</p>
       </div>
@@ -97,5 +97,9 @@
   .btn {
     @apply select-none; /* Disallow selecting button text */
     @apply border border-black bg-transparent px-4 py-0.5 hover:underline;
+  }
+
+  h1 {
+    @apply text-lg;
   }
 </style>
