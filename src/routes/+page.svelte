@@ -103,7 +103,7 @@
   <div class="flex h-full flex-col gap-4 sm:flex-row">
     <!-- Left column, log -->
     <div
-      class="relative flex max-h-[calc(100vh-5em)] select-none flex-col items-start gap-4 overflow-hidden sm:w-48"
+      class="relative flex h-1/2 max-h-[calc(100vh-6em)] select-none flex-col items-start gap-4 overflow-hidden sm:h-auto sm:w-48"
     >
       <div class="flex flex-col-reverse justify-end gap-3 sm:h-full" id="log">
         {#each $logs as log}
@@ -124,7 +124,7 @@
     </div>
 
     <!-- Central column, actions -->
-    <div class="flex-grow select-none overflow-x-hidden px-4">
+    <div class="flex-grow select-none overflow-x-hidden sm:px-4">
       <!-- Headings (tabs) -->
       <div class="mb-4 flex divide-x" id="tabs">
         <button
@@ -168,7 +168,7 @@
           </div>
         {:else if $activeTab === 'portals'}
           <div
-            class="absolute flex w-full flex-col gap-2"
+            class="absolute flex w-full flex-col gap-2 pr-2 sm:pr-0"
             in:fly={{ x: '-100%' }}
             out:fly={{ x: '100%' }}
           >
@@ -193,7 +193,7 @@
     </div>
 
     <!-- Status column -->
-    <div class="flex w-80 select-none flex-col gap-2 leading-none">
+    <div class="flex select-none flex-col gap-2 leading-none sm:w-80">
       <p>Game tick: {$gameTick}</p>
       <div class="flex flex-col gap-2 border px-2 py-2">
         <p>Location: {$locData.location.city}, {$locData.location.country}</p>
