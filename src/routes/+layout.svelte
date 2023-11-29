@@ -8,7 +8,7 @@
 </svelte:head>
 
 <main
-  class="flex h-full justify-center dark:bg-neutral-900 dark:text-neutral-200"
+  class="flex h-full justify-center overflow-y-hidden dark:bg-neutral-900 dark:text-neutral-200"
 >
   <slot />
 </main>
