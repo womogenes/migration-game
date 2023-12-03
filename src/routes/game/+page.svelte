@@ -1,11 +1,10 @@
 <script>
-  import { fade } from 'svelte/transition';
-  import { derived } from 'svelte/store';
+  import { fade, fly } from 'svelte/transition';
+  import { derived, writable } from 'svelte/store';
 
   import allLocData from '$lib/locations.json';
   import { store } from '$lib/store.js';
   import { onMount } from 'svelte';
-  import { goto } from '$app/navigation';
 
   // Utilities
   Array.prototype.sample = function () {
@@ -18,17 +17,18 @@
   onMount(() => {
     const tickInterval = window.setInterval(() => {
       $gameTick++;
-      everyTick();
+      onTick();
     }, 100);
 
     return () => window.clearInterval(tickInterval);
   });
 
   // Things to do every game loop
-  const everyTick = () => {
-    if ($gameTick % 60 === 1) {
+  const onTick = () => {
+    if ($gameTick % 100 === 50) {
       $logs = [...$logs, $locData.ambientMessages.sample()];
     }
+    $funds.amount *= 1.001;
   };
 
   // Choose a random location to start at
@@ -37,30 +37,103 @@
     allLocData.find((locObj) => locObj.id === $locID),
   );
 
+  // Funds
+  const funds = store('funds', {
+    amount: 1,
+    currency: $locData.currency.code,
+  });
+  $: moneyFormatter = new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: $funds.currency,
+    maximumFractionDigits: 2,
+    minimumFractionDigits: 2,
+  });
+  $: formattedFunds = moneyFormatter.format($funds.amount);
+
+  // Things that happen when you switch locations
+  // I anticipate this is gonna become a huge pain later on
+  const switchLocation = (newLocID) => {
+    const newLocData = allLocData.find((loc) => loc.id === newLocID);
+    let oldCurrency = $locData.currency.conversion;
+    let newCurrency = newLocData.currency.conversion;
+    $funds.amount *= oldCurrency / newCurrency;
+    $funds.currency = newLocData.currency.code;
+  };
+
   // Log messages in left sidebar
   const logs = store('logs', [`Welcome to ${$locData.location.city}.`]);
   const addLog = (message) => {
     $logs = [...$logs, message];
   };
-
   const status = store('status', 'alive');
 
-  // Redirect user to different page + replace route so it isn't added to browser history
-  function routeToPage(route, replaceState) {
-    goto(`/${route}`, { replaceState }) 
-  }
+  // Modal actions
+  const curModal = store('cur-modal', null);
 
+  // UI state things
+  let activeTab = store('active-tab', 'city'); // Can be 'main' or 'portals'
+
+  // Purely cosmetic things
+  let soundOn = writable(false);
+  let audioEls;
+  const initializeAudio = () => {
+    audioEls = Array.from(document.querySelectorAll('audio'));
+    audioEls.forEach((audioEl) => (audioEl.volume = 0.1));
+    soundOn.subscribe(($soundOn) => {
+      if ($soundOn) {
+        // Play all the sounds
+        audioEls.forEach((audioEl) => audioEl.play());
+      } else {
+        audioEls.forEach((audioEl) => audioEl.pause());
+      }
+    });
+  };
+  onMount(initializeAudio);
 </script>
 
-<div class="box-border h-full max-h-screen w-full max-w-5xl px-6 py-6">
-  <div class="flex h-full gap-8">
+<!-- Let's add some sound effects :) -->
+
+{#if $locData.sounds}
+  {#each $locData.sounds as sound}
+    <audio loop>
+      <source src={sound.url} />
+    </audio>
+  {/each}
+{/if}
+
+<!-- Modal -->
+{#if $curModal}
+  <div
+    class="absolute z-20 flex h-full w-full items-center justify-center bg-neutral-900 bg-opacity-50"
+    transition:fade
+  >
+    <div class="flex w-full max-w-sm flex-col gap-4 border bg-white px-6 py-4">
+      <h1>{$curModal.title}</h1>
+      <div class="flex gap-4">
+        {#each $curModal.actions as action}
+          <button
+            class="btn"
+            on:click={() => {
+              action.action();
+              $curModal = null;
+            }}>{action.label}</button
+          >
+        {/each}
+      </div>
+    </div>
+  </div>
+{/if}
+
+<!-- Main content -->
+<div class="relative flex w-full max-w-5xl flex-col px-6 pb-3 pt-6">
+  <div class="flex h-full flex-col gap-4 sm:flex-row">
     <!-- Left column, log -->
     <div
-      class="relative flex h-full w-48 select-none flex-col items-start gap-4 overflow-hidden"
+      class="relative flex h-1/2 max-h-[calc(100vh-6em)] select-none flex-col items-start gap-4 overflow-hidden sm:h-auto sm:w-48"
     >
-      <div class="flex h-full flex-col-reverse justify-end gap-3" id="log">
+      <div class="flex flex-col-reverse justify-end gap-3 sm:h-full" id="log">
         {#each $logs as log}
-          <div transition:fade={{ duration: 500 }}>
+          <div transition:fade={{ delay: 150, duration: 500 }}>
             {#if log.message}
               <p class="leading-tight">{log.message}</p>
             {:else}
@@ -72,53 +145,137 @@
 
       <!-- Gradient for vignette effect -->
       <div
-        class="absolute left-0 top-0 h-full w-full bg-gradient-to-t from-white to-transparent to-50%"
+        class="absolute left-0 top-0 h-full w-full bg-gradient-to-t from-white to-transparent to-50% dark:from-neutral-900"
       ></div>
     </div>
 
     <!-- Central column, actions -->
-    <div class="flex-grow">
-      <h1 class="mb-3 underline">{$locData.location.city}</h1>
+    <div class="flex-grow select-none overflow-x-hidden sm:px-4">
+      <!-- Headings (tabs) -->
+      <div class="mb-4 flex divide-x" id="tabs">
+        <button
+          class="pr-3 leading-none {$activeTab === 'city' && 'underline'}"
+          on:click={() => ($activeTab = 'city')}
+          >{$locData.location.city}</button
+        >
+        <button
+          class="pl-3 pr-3 leading-none {$activeTab === 'portals' &&
+            'underline'}"
+          on:click={() => ($activeTab = 'portals')}>Portals</button
+        >
+      </div>
 
-      <div class="flex flex-col items-start gap-2">
-        <button
-          class="btn"
-          on:click={() => {
-            localStorage.clear();
-            window.location.reload(); 
-          }}
-          on:click={() => routeToPage('', true)}
-        >
-          Clear localStorage
-        </button>
-        <button
-          class="btn"
-          on:click={() => addLog($locData.ambientMessages.sample())}
-        >
-          Add log
-        </button>
-        <button class="btn" on:click={() => ($logs = [])}>Clear logs</button>
+      <!-- Content (three panels) -->
+      <div class="relative flex w-full">
+        {#if $activeTab === 'city'}
+          <div
+            class="absolute flex w-full flex-col items-start gap-2"
+            in:fly={{ x: '-100%' }}
+            out:fly={{ x: '100%' }}
+          >
+            <button
+              class="btn"
+              on:click={() => {
+                localStorage.clear();
+                window.location.reload();
+              }}
+            >
+              Clear localStorage
+            </button>
+            <button
+              class="btn"
+              on:click={() => addLog($locData.ambientMessages.sample())}
+            >
+              Add log
+            </button>
+            <button class="btn" on:click={() => ($logs = [])}
+              >Clear logs
+            </button>
+            <hr />
+            <button
+              class="btn"
+              on:click={() =>
+                ($curModal = {
+                  title: 'This is a modal title',
+                  actions: [
+                    {
+                      label: 'double funds',
+                      action: () => ($funds.amount *= 2),
+                    },
+                    {
+                      label: 'add 100 funds',
+                      action: () => ($funds.amount += 100),
+                    },
+                  ],
+                })}
+            >
+              Create modal
+            </button>
+          </div>
+        {:else if $activeTab === 'portals'}
+          <div
+            class="absolute flex w-full flex-col gap-2 pr-2 sm:pr-0"
+            in:fly={{ x: '-100%' }}
+            out:fly={{ x: '100%' }}
+          >
+            <!-- Different choices of location to travel to -->
+            {#each allLocData as location}
+              <!-- TODO: Something dramatic needs to happen -->
+              <button
+                class="flex flex-col gap-1 border px-3 py-3 leading-none transition-colors hover:bg-neutral-50 dark:hover:bg-neutral-800"
+                on:click={() => {
+                  switchLocation(location.id);
+                  $locID = location.id;
+                  addLog(`Welcome to ${$locData.location.city}.`);
+                }}
+              >
+                <p class="font-bold">{location.location.city}</p>
+                <p>Country: {location.location.country}</p>
+              </button>
+            {/each}
+          </div>
+        {/if}
       </div>
     </div>
 
     <!-- Status column -->
-    <div class="flex w-80 flex-col gap-2 leading-none">
+    <div class="flex select-none flex-col gap-2 leading-none md:w-80">
       <p>Game tick: {$gameTick}</p>
-      <div class="flex flex-col gap-2 border border-black px-2 py-2">
-        <p>Status: {$status}</p>
+      <div class="flex flex-col gap-2 border px-2 py-2">
         <p>Location: {$locData.location.city}, {$locData.location.country}</p>
+        <p>Status: {$status}</p>
+        <p>
+          Funds: <span class="tabular-nums"
+            >{formattedFunds} {$funds.currency}</span
+          >
+        </p>
       </div>
     </div>
   </div>
+
+  <!-- Game settings/controls -->
+  <div class="self-end text-neutral-500 dark:text-neutral-400">
+    <button class="hover:underline" on:click={() => ($soundOn = !$soundOn)}>
+      sound {$soundOn ? 'on' : 'off'}.
+    </button>
+  </div>
 </div>
 
-<style lang="postcss">
+<style lang="css">
+  :global(hr) {
+    @apply w-full border-b border-neutral-500;
+  }
+
   .btn {
     @apply select-none; /* Disallow selecting button text */
-    @apply border border-black bg-transparent px-4 py-0.5 hover:underline;
+    @apply border bg-transparent px-4 py-0.5 hover:underline;
   }
 
   h1 {
     @apply text-lg;
+  }
+
+  :global(html) {
+    font-size: 16pt;
   }
 </style>
