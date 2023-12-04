@@ -1,6 +1,6 @@
 <script>
   import { fade, fly } from 'svelte/transition';
-  import { derived, writable } from 'svelte/store';
+  import { derived, get, writable } from 'svelte/store';
 
   import { store } from '$lib/store.js';
   import { onMount } from 'svelte';
@@ -49,20 +49,22 @@
   // Import things from js file
   const events = [
     {
-      count: 0,
+      queued: store('queued-checkups', 0),
       condition: function () {
-        return this.count === 0 && $gameDays > 30;
+        let res = $gameDays > (get(this.queued) + 1) * 30;
+        return res;
       },
       effect: function () {
+        this.queued.update((x) => x + 1);
         enqueueModal({
-          title: "The doctor's office",
-          desc: `You take Levan to the doctor for his ${Math.floor(
+          title: 'Medical checkup',
+          desc: `You need to bring Levan to the doctor for his ${Math.floor(
             childAge,
           )}-month checkup.`,
           actions: [
             {
               label: 'ok',
-              tooltip: `&ndash;₾100`,
+              tooltip: `<div class="flex justify-between"><span>Funds</span><span>&ndash;₾100</span></div>`,
               action: () => {
                 funds.update((x) => {
                   return { ...x, amount: x.amount - 100 };
@@ -87,7 +89,6 @@
     for (let event of events) {
       if (!event.condition()) continue;
       event.effect();
-      event.count++;
     }
   };
 
@@ -140,7 +141,9 @@
           <p>Levan</p>
           <p>
             <b>Age:</b>
-            {`${Math.floor(childAge)} ${childAge > 2 ? 'months' : 'month'}`}
+            {`${Math.floor(childAge)} ${
+              Math.floor(childAge) !== 1 ? 'months' : 'month'
+            }`}
           </p>
           <p>
             <b>Status:</b>
@@ -201,13 +204,13 @@
         <span class="tabular-nums">₾{formattedFunds}</span>
       </p>
       <div class="w-full">
-        <p class="mb-1">Timewarp: {$timewarp * 5} days / second</p>
+        <p class="mb-1">Timewarp: {($timewarp * 5).toFixed(2)} days / second</p>
         <input
           class="w-full"
           type="range"
-          min="0.1"
-          max="2"
-          step="0.1"
+          min="0.01"
+          max="0.5"
+          step="0.01"
           bind:value={$timewarp}
         />
       </div>

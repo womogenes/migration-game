@@ -10,8 +10,6 @@
 
   let hover = false;
   let lastUsed = $gameDays - cooldown;
-
-  console.log(`tooltip:`, tooltip);
 </script>
 
 <!-- With cooldowns and a tooltip! -->
