@@ -4,7 +4,7 @@ export default {
   theme: {
     fontSize: {
       base: '16pt',
-      lg: '17pt',
+      lg: '18pt',
     },
     fontFamily: {
       sans: ['Times New Roman'],

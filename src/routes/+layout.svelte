@@ -20,17 +20,17 @@
   }
 
   :global(hr) {
-    @apply w-full border-b border-neutral-500;
+    @apply w-48 border-b border-t-0 border-neutral-500;
   }
 
   :global(.btn) {
     @apply select-none; /* Disallow selecting button text */
-    @apply border bg-transparent px-4 py-0.5 pt-1;
+    @apply border bg-transparent px-4 py-0.5;
     @apply transition-colors hover:bg-neutral-100 hover:underline;
   }
 
   :global(h1) {
-    @apply text-lg;
+    @apply text-lg font-bold;
   }
 
   :global(html) {

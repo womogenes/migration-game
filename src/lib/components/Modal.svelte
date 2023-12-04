@@ -1,6 +1,6 @@
 <script>
-  // Automatically shows when
-
+  // Automatically shows when curModal is not null.
+  // Automatically hides on every action complete.
   export let curModal;
   /*
     curModal = {
@@ -12,7 +12,6 @@
       ]
     }
   */
-
   import { fade } from 'svelte/transition';
 
   let show = !!$curModal;

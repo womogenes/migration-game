@@ -4,7 +4,8 @@
 
   import { store } from '$lib/store.js';
   import { onMount } from 'svelte';
-  import Modal from '../../lib/components/Modal.svelte';
+  import Modal from '$lib/components/modal.svelte';
+  import Logs from '$lib/components/Logs.svelte';
 
   // Utilities
   Array.prototype.sample = function () {
@@ -24,13 +25,11 @@
   });
 
   // Things to do every game loop
-  const onTick = () => {
-    $funds.amount *= 1.001;
-  };
+  const onTick = () => {};
 
   // Funds
   const funds = store('funds', {
-    amount: 1,
+    amount: Math.random() * 1000 + 6000,
     currency: 'GEL',
   });
   $: moneyFormatter = new Intl.NumberFormat('ka-GE', {
@@ -42,72 +41,66 @@
   $: formattedFunds = moneyFormatter.format($funds.amount);
 
   // Log messages in left sidebar
-  const logs = store('logs', ['Welcome']);
-  const addLog = (message) => {
-    $logs = [...$logs, message];
-  };
-  const status = store('status', 'alive');
+  const logs = store('logs', ['Welcome.']);
+  const addLog = (message) => ($logs = [...$logs, message]);
+
+  // Import things from js file
 
   // Modal actions
   const curModal = store('cur-modal', null);
-
-  // UI state things
-  let activeTab = store('active-tab', 0); // Can be 'main' or 'portals'
 </script>
 
 <!-- Modal -->
 <Modal {curModal} />
 
 <!-- Main content -->
-<div class="relative flex w-full max-w-5xl flex-col px-6 py-6">
+<div class="relative flex w-full max-w-5xl flex-col px-6 py-4">
   <div class="flex h-full flex-col gap-4 sm:flex-row">
     <!-- Left column, log -->
-    <div
-      class="relative flex select-none flex-col gap-4 overflow-hidden sm:h-auto sm:w-48"
-    >
-      <div class="flex flex-col-reverse justify-end gap-3 sm:h-full" id="log">
-        {#each $logs as log}
-          <div transition:fade={{ delay: 150, duration: 500 }}>
-            {#if log.message}
-              <p class="leading-tight">{log.message}</p>
-            {:else}
-              <p class="leading-tight">{log}</p>
-            {/if}
-          </div>
-        {/each}
-      </div>
-
-      <!-- Gradient for vignette effect -->
-      <div
-        class="absolute left-0 top-0 h-full w-full bg-gradient-to-t from-white to-transparent to-50% dark:from-neutral-900"
-      ></div>
-    </div>
+    <Logs {logs} />
 
     <!-- Central column, actions -->
     <div class="flex flex-grow select-none flex-col items-start gap-2">
-      <p>Hi there</p>
-      <button
-        class="btn"
-        on:click={() => {
-          $curModal = {
-            title: 'Modal title',
-            actions: [{ label: 'okay', action: () => {} }],
-          };
-        }}>Open modal</button
-      >
+      <div>
+        <b>Work</b>
+        <hr />
+        <p>Occupation: security guard</p>
+        <p>Status: maternity leave (10/12 weeks)</p>
+        <p>
+          <span>Income sources:</span>
+        </p>
+        <ol class="list-decimal pl-6">
+          <li>Maternity leave (1500 GEL/month)</li>
+        </ol>
+      </div>
     </div>
 
     <!-- Status column -->
     <div class="flex select-none flex-col gap-2 leading-none md:w-80">
-      <p>Game tick: {$gameTick}</p>
-      <div class="flex flex-col gap-2 border px-2 py-2">
-        <p>Location: Tbilisi, Georgia</p>
-        <p>Status: {$status}</p>
+      <div class="flex flex-col gap-2 border px-3 py-2">
+        <p><b>Location:</b> Tbilisi, Georgia</p>
         <p>
-          Funds:
+          <b>Savings:</b>
           <span class="tabular-nums">{formattedFunds}</span>
         </p>
       </div>
     </div>
   </div>
+
+  <div class="flex items-center gap-4 self-end">
+    <p>Game tick: {$gameTick}</p>
+    <button
+      class="btn"
+      on:click={() => {
+        localStorage.clear();
+        window.location.reload();
+      }}>Reset game</button
+    >
+  </div>
 </div>
+
+<style>
+  hr {
+    @apply mb-1;
+  }
+</style>
