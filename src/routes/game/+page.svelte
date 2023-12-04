@@ -4,7 +4,7 @@
 
   import { store } from '$lib/store.js';
   import { onMount } from 'svelte';
-  import Modal from '$lib/components/modal.svelte';
+  import Modal from '$lib/components/Modal.svelte';
   import Logs from '$lib/components/Logs.svelte';
   import Button from '../../lib/components/Button.svelte';
 
