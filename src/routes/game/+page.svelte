@@ -48,13 +48,31 @@
   const addLog = (message) => ($logs = [...$logs, message]);
 
   // Import things from js file
+  const events = [
+    {
+      count: 0,
+      condition: function () {
+        return this.count === 0 && $gameDays > 5;
+      },
+      effect: function () {
+        addLog('Time for the annual checkup.');
+      },
+    },
+  ];
 
   // Things to do every game loop
   const onTick = () => {
     // Child gets hungry?
     if (Math.random() < 0.3) {
-      $childStatus += (Math.random() - 0.8) * 0.1;
+      $childStatus += (Math.random() - 0.8) * 0.4;
       $childStatus = Math.min(1, Math.max($childStatus, 0));
+    }
+
+    // Run all the events
+    for (let event of events) {
+      if (!event.condition()) continue;
+      event.effect();
+      event.count++;
     }
   };
 
@@ -67,7 +85,7 @@
 
 <!-- Main content -->
 <div class="relative flex w-full max-w-5xl flex-col px-6 py-4">
-  <div class="flex h-full flex-col gap-4 sm:flex-row">
+  <div class="flex h-full flex-col gap-6 sm:flex-row">
     <!-- Left column, log -->
     <Logs {logs} />
 
@@ -81,11 +99,10 @@
         <hr />
         <p><b>Occupation:</b> security guard</p>
         <p><b>Status:</b> Paid parental leave (week 1 of 12)</p>
-        <Button class="py-2" disabled tabindex="0">
+        <Button class="pt-2" disabled tabindex="0">
           Return to work
           <div slot="tooltip">
-            You can't return to work right now because you need to take care of
-            your child full-time.
+            Your child currently requires all of your focus and attention.
           </div>
         </Button>
 
@@ -100,7 +117,7 @@
       <div class="w-full">
         <p class="mb-1"><b>Family</b></p>
         <div class="border px-3 py-2">
-          <p>Levan (child)</p>
+          <p>Levan</p>
           <p>
             <b>Age:</b>
             {Math.floor(childAge * 12)} months
@@ -111,15 +128,27 @@
               {#if $childStatus > 0.7}
                 Happy
               {:else if $childStatus > 0.5}
-                Content
+                Irritated
               {:else if $childStatus > 0.3}
-                Hungry
+                Frustrated
               {:else}
-                Very hungry
+                Crying
               {/if}
             </span>
             <span>({($childStatus * 100).toFixed(0)}%)</span>
           </p>
+          <Button
+            class="my-1"
+            on:click={() => {
+              $childStatus += (1 - $childStatus) * 0.2;
+              addLog(
+                [
+                  'Levan is a little happier.',
+                  'You gently sooth Levan.',
+                ].sample(),
+              );
+            }}>Feed</Button
+          >
         </div>
       </div>
     </div>

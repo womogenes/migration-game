@@ -2,6 +2,7 @@
 // https://stackoverflow.com/questions/56488202/how-to-persist-svelte-store
 
 import { writable } from 'svelte/store';
+import Cryo from 'cryo';
 
 export const store = (id, defaultValue) => {
   // id is a String
@@ -9,31 +10,10 @@ export const store = (id, defaultValue) => {
 
   // This Svelte store syncs with localStorage
   const myStore = writable(
-    (localStorage[id] && deserialize(localStorage[id])) || defaultValue,
+    (localStorage[id] && Cryo.parse(localStorage[id])) || defaultValue,
   );
   myStore.subscribe((value) => {
-    localStorage.setItem(id, serialize(value));
+    localStorage.setItem(id, Cryo.stringify(value));
   });
   return myStore;
 };
-
-function serialize(obj) {
-  return JSON.stringify(obj, function (key, value) {
-    if (typeof value === 'function') {
-      return value.toString();
-    }
-    return value;
-  });
-}
-
-function deserialize(str) {
-  return JSON.parse(str, function (key, value) {
-    if (
-      typeof value === 'string' &&
-      (value.indexOf('() =>') === 0 || value.indexOf('function') === 0)
-    ) {
-      return new Function(`return ${value}`);
-    }
-    return value;
-  });
-}

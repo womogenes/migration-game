@@ -1,7 +1,9 @@
 <script>
+  import { onMount } from 'svelte';
   import { fade, fly } from 'svelte/transition';
 
   let hover = false;
+  let cooldown = 10; // In days
 </script>
 
 <!-- With cooldowns and a tooltip! -->
@@ -13,12 +15,15 @@
     on:blur={() => (hover = false)}
     tabindex={$$props.tabindex}
     class="btn inline-block"
-    disabled={$$props.disabled}><slot /></button
+    disabled={$$props.disabled}
+    on:click
   >
+    <slot />
+  </button>
 
-  {#if hover}
+  {#if hover && $$slots.tooltip}
     <div
-      class="text-sm absolute top-9 w-48 border bg-white px-2 py-1 leading-tight shadow"
+      class="absolute top-[46px] w-48 border bg-white px-2 py-1 text-sm leading-tight"
       transition:fade
     >
       <slot name="tooltip" />

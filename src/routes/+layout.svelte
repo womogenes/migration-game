@@ -34,6 +34,10 @@
     @apply text-lg font-bold;
   }
 
+  :global(pre) {
+    @apply text-sm;
+  }
+
   :global(html) {
     font-size: 16pt;
   }
