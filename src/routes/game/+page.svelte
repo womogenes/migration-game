@@ -150,14 +150,16 @@
 <Modal {modalQueue} />
 
 <!-- Main content -->
-<div class="relative flex max-h-screen w-full max-w-5xl flex-col px-6 py-4">
+<div
+  class="relative flex max-h-screen w-full max-w-5xl flex-col overflow-y-hidden px-6 py-4"
+>
   <div class="flex h-full flex-col items-start gap-6 sm:flex-row">
     <!-- Left column, log -->
     <Logs {logs} />
 
     <!-- Central column, actions -->
     <div
-      class="flex flex-grow select-none flex-col items-start gap-4 leading-snug"
+      class="flex w-full flex-grow select-none flex-col items-start gap-4 leading-snug"
     >
       <!-- WORK -->
       <div class="flex flex-col items-start">
@@ -237,10 +239,12 @@
           >
         </div>
       </div>
+
+      <img class="w-" src="images/ipo.png" alt="IPO" />
     </div>
 
     <!-- Status column -->
-    <div class="flex select-none flex-col gap-2 leading-none md:w-80">
+    <div class="flex select-none flex-col gap-2 leading-none md:w-[34em]">
       <p>
         <b>Date:</b>
         {gameDate.toLocaleDateString('en-us', {
@@ -255,8 +259,10 @@
         <b>Savings:</b>
         <span class="tabular-nums">{formattedFunds}</span>
       </p>
-      <div class="w-full">
-        <p class="mb-1">Timewarp: {($timewarp * 5).toFixed(2)} days / second</p>
+      <div class="mt-4 w-full border px-4 py-2">
+        <p class="mb-1">
+          Game speed: {($timewarp * 5).toFixed(2)} days / second
+        </p>
         <input
           class="w-full"
           type="range"

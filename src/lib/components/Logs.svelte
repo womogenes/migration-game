@@ -5,7 +5,7 @@
 </script>
 
 <div
-  class="relative flex h-full select-none flex-col gap-4 overflow-hidden sm:w-48"
+  class="relative flex h-full select-none flex-col gap-4 overflow-hidden sm:w-80"
 >
   <div class="flex flex-col-reverse justify-end gap-3 sm:h-full" id="log">
     {#each $logs as log}
