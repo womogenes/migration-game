@@ -3,6 +3,7 @@ export default {
   content: ['./src/**/*.svelte', './src/*.{html,css}'],
   theme: {
     fontSize: {
+      sm: '14pt',
       base: '16pt',
       lg: '18pt',
     },

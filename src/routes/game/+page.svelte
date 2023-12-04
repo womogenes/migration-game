@@ -6,6 +6,7 @@
   import { onMount } from 'svelte';
   import Modal from '$lib/components/modal.svelte';
   import Logs from '$lib/components/Logs.svelte';
+  import Button from '../../lib/components/Button.svelte';
 
   // Utilities
   Array.prototype.sample = function () {
@@ -18,15 +19,16 @@
   const gameDays = store('game-days', 0);
   onMount(() => {
     const tickInterval = window.setInterval(() => {
-      $gameDays += 0.1;
+      $gameDays += 1 / 12;
       onTick();
     }, 1000);
     return () => window.clearInterval(tickInterval);
   });
   $: gameDate = new Date($startTime + $gameDays * (1000 * 60 * 60 * 24));
 
-  // Things to do every game loop
-  const onTick = () => {};
+  // Child things
+  $: childAge = $gameDays / 365 + 0.5;
+  const childStatus = store('child-status', 1);
 
   // Funds
   const funds = store('funds', {
@@ -47,6 +49,15 @@
 
   // Import things from js file
 
+  // Things to do every game loop
+  const onTick = () => {
+    // Child gets hungry?
+    if (Math.random() < 0.3) {
+      $childStatus += (Math.random() - 0.8) * 0.1;
+      $childStatus = Math.min(1, Math.max($childStatus, 0));
+    }
+  };
+
   // Modal actions
   const curModal = store('cur-modal', null);
 </script>
@@ -61,18 +72,55 @@
     <Logs {logs} />
 
     <!-- Central column, actions -->
-    <div class="flex flex-grow select-none flex-col items-start gap-2">
-      <div>
+    <div
+      class="flex flex-grow select-none flex-col items-start gap-4 leading-snug"
+    >
+      <!-- WORK -->
+      <div class="flex flex-col items-start">
         <b>Work</b>
         <hr />
-        <p>Occupation: security guard</p>
-        <p>Status: parental leave (10/12 weeks)</p>
-        <p>
-          <span>Income sources:</span>
-        </p>
+        <p><b>Occupation:</b> security guard</p>
+        <p><b>Status:</b> Paid parental leave (week 1 of 12)</p>
+        <Button class="py-2" disabled tabindex="0">
+          Return to work
+          <div slot="tooltip">
+            You can't return to work right now because you need to take care of
+            your child full-time.
+          </div>
+        </Button>
+
+        <br />
+        <p><b>Income:</b></p>
         <ol class="list-decimal pl-6">
           <li>Parental leave (1500 GEL/month)</li>
         </ol>
+      </div>
+
+      <!-- FAMILY -->
+      <div class="w-full">
+        <p class="mb-1"><b>Family</b></p>
+        <div class="border px-3 py-2">
+          <p>Levan (child)</p>
+          <p>
+            <b>Age:</b>
+            {Math.floor(childAge * 12)} months
+          </p>
+          <p>
+            <b>Status:</b>
+            <span>
+              {#if $childStatus > 0.7}
+                Happy
+              {:else if $childStatus > 0.5}
+                Content
+              {:else if $childStatus > 0.3}
+                Hungry
+              {:else}
+                Very hungry
+              {/if}
+            </span>
+            <span>({($childStatus * 100).toFixed(0)}%)</span>
+          </p>
+        </div>
       </div>
     </div>
 
@@ -106,9 +154,3 @@
     >
   </div>
 </div>
-
-<style>
-  hr {
-    @apply mb-1;
-  }
-</style>
