@@ -15,19 +15,20 @@
 
   // Game tick
   // Prevent setInterval from running twice with Svelte hot-reloading
+  let timewarp = store('timewarp', 0.1);
   const startTime = store('start-time', new Date().getTime());
   const gameDays = store('game-days', 0);
   onMount(() => {
     const tickInterval = window.setInterval(() => {
-      $gameDays += 1 / 12;
+      $gameDays += $timewarp;
       onTick();
-    }, 1000);
+    }, 200);
     return () => window.clearInterval(tickInterval);
   });
   $: gameDate = new Date($startTime + $gameDays * (1000 * 60 * 60 * 24));
 
   // Child things
-  $: childAge = $gameDays / 365 + 0.5;
+  $: childAge = $gameDays / 30 + 1;
   const childStatus = store('child-status', 1);
 
   // Funds
@@ -52,10 +53,10 @@
     {
       count: 0,
       condition: function () {
-        return this.count === 0 && $gameDays > 5;
+        return this.count === 0 && $gameDays > 30;
       },
       effect: function () {
-        addLog('Time for the annual checkup.');
+        addLog(`Time for Levan's ${Math.floor(childAge)}-month checkup.`);
       },
     },
   ];
@@ -64,7 +65,7 @@
   const onTick = () => {
     // Child gets hungry?
     if (Math.random() < 0.3) {
-      $childStatus += (Math.random() - 0.8) * 0.4;
+      $childStatus += (Math.random() - 0.8) * 0.1;
       $childStatus = Math.min(1, Math.max($childStatus, 0));
     }
 
@@ -84,8 +85,8 @@
 <Modal {curModal} />
 
 <!-- Main content -->
-<div class="relative flex w-full max-w-5xl flex-col px-6 py-4">
-  <div class="flex h-full flex-col gap-6 sm:flex-row">
+<div class="relative flex max-h-screen w-full max-w-5xl flex-col px-6 py-4">
+  <div class="flex h-full flex-col items-start gap-6 sm:flex-row">
     <!-- Left column, log -->
     <Logs {logs} />
 
@@ -98,7 +99,7 @@
         <b>Work</b>
         <hr />
         <p><b>Occupation:</b> security guard</p>
-        <p><b>Status:</b> Paid parental leave (week 1 of 12)</p>
+        <p><b>Status:</b> Paid parental leave (week 1 / 12)</p>
         <Button class="pt-2" disabled tabindex="0">
           Return to work
           <div slot="tooltip">
@@ -109,7 +110,7 @@
         <br />
         <p><b>Income:</b></p>
         <ol class="list-decimal pl-6">
-          <li>Parental leave (1500 GEL/month)</li>
+          <li>Parental leave (1500 GEL / month)</li>
         </ol>
       </div>
 
@@ -120,7 +121,7 @@
           <p>Levan</p>
           <p>
             <b>Age:</b>
-            {Math.floor(childAge * 12)} months
+            {Math.floor(childAge)} months
           </p>
           <p>
             <b>Status:</b>
@@ -139,15 +140,31 @@
           </p>
           <Button
             class="my-1"
-            on:click={() => {
+            onClick={() => {
               $childStatus += (1 - $childStatus) * 0.2;
               addLog(
                 [
-                  'Levan is a little happier.',
-                  'You gently sooth Levan.',
+                  'Levan giggles with joy.',
+                  'You cradle Levan, and a sweet smile lights up his face.',
+                  'His eyes sparkle with curiosity as Levan explores his surroundings.',
+                  'A burst of laughter escapes from Levan, filling the room with warmth.',
+                  'You playfully tickle Levan, eliciting adorable giggles.',
+                  "Levan's tiny fingers wrap around yours, forming a heartwarming connection.",
+                  "As you sing a lullaby, Levan's eyes slowly close in peaceful contentment.",
+                  'Levan beams with delight at the colorful toys around him.',
+                  "Levan's infectious laughter brightens up the entire room.",
+                  "Levan's laughter rings out, bringing joy to the moment.",
+                  'You gently rock Levan, and a happy grin spreads across his face.',
+                  "Levan's curious gaze meets yours, creating a heart-to-heart connection.",
+                  'A playful giggle escapes Levan, filling the room with delight.',
+                  'As you make funny faces, Levan bursts into contagious laughter.',
+                  'Levan snuggles close, finding comfort in your warm embrace.',
+                  "Levan's eyes light up with happiness at the sight of a beloved toy.",
                 ].sample(),
               );
-            }}>Feed</Button
+            }}
+            cooldown={1}
+            {gameDays}>Feed</Button
           >
         </div>
       </div>
@@ -162,17 +179,28 @@
           day: 'numeric',
           year: 'numeric',
         })}
-        ({gameDate.toLocaleDateString('en-us', { weekday: 'long' })})
+        <!-- ({gameDate.toLocaleDateString('en-us', { weekday: 'long' })}) -->
       </p>
       <p><b>Location:</b> Tbilisi, Georgia</p>
       <p>
         <b>Savings:</b>
         <span class="tabular-nums">{formattedFunds}</span>
       </p>
+      <div class="w-full">
+        <p class="mb-1">Timewarp: {$timewarp} days / second</p>
+        <input
+          class="w-full"
+          type="range"
+          min="0.1"
+          max="5"
+          step="0.1"
+          bind:value={$timewarp}
+        />
+      </div>
     </div>
   </div>
 
-  <div class="flex items-center gap-4 self-end">
+  <div class="absolute bottom-4 flex items-center gap-4 self-end bg-white px-4">
     <p>Game days: {$gameDays.toFixed(2)}</p>
     <button
       class="btn"
