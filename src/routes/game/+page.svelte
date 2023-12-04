@@ -36,9 +36,7 @@
     amount: Math.random() * 1000 + 6000,
     currency: 'GEL',
   });
-  $: moneyFormatter = new Intl.NumberFormat('ka-GE', {
-    style: 'currency',
-    currency: $funds.currency,
+  $: moneyFormatter = new Intl.NumberFormat('en-US', {
     maximumFractionDigits: 2,
     minimumFractionDigits: 2,
   });
@@ -56,7 +54,23 @@
         return this.count === 0 && $gameDays > 30;
       },
       effect: function () {
-        addLog(`Time for Levan's ${Math.floor(childAge)}-month checkup.`);
+        enqueueModal({
+          title: "The doctor's office",
+          desc: `You take Levan to the doctor for his ${Math.floor(
+            childAge,
+          )}-month checkup.`,
+          actions: [
+            {
+              label: 'ok',
+              tooltip: `&ndash;₾100`,
+              action: () => {
+                funds.update((x) => {
+                  return { ...x, amount: x.amount - 100 };
+                });
+              },
+            },
+          ],
+        });
       },
     },
   ];
@@ -78,11 +92,14 @@
   };
 
   // Modal actions
-  const curModal = store('cur-modal', null);
+  let modalQueue = store('modal-queue', []);
+  const enqueueModal = (modal) => {
+    $modalQueue = [...$modalQueue, modal];
+  };
 </script>
 
 <!-- Modal -->
-<Modal {curModal} />
+<Modal {modalQueue} />
 
 <!-- Main content -->
 <div class="relative flex max-h-screen w-full max-w-5xl flex-col px-6 py-4">
@@ -98,19 +115,21 @@
       <div class="flex flex-col items-start">
         <b>Work</b>
         <hr />
-        <p><b>Occupation:</b> security guard</p>
+        <p><b>Occupation:</b> Security guard</p>
         <p><b>Status:</b> Paid parental leave (week 1 / 12)</p>
-        <Button class="pt-2" disabled tabindex="0">
+        <Button
+          class="pt-2"
+          disabled
+          tabindex="0"
+          tooltip="Levan currently requires all of your focus and attention."
+        >
           Return to work
-          <div slot="tooltip">
-            Your child currently requires all of your focus and attention.
-          </div>
         </Button>
 
         <br />
         <p><b>Income:</b></p>
         <ol class="list-decimal pl-6">
-          <li>Parental leave (1500 GEL / month)</li>
+          <li>Parental leave (₾1,500 / month)</li>
         </ol>
       </div>
 
@@ -121,7 +140,7 @@
           <p>Levan</p>
           <p>
             <b>Age:</b>
-            {Math.floor(childAge)} months
+            {`${Math.floor(childAge)} ${childAge > 2 ? 'months' : 'month'}`}
           </p>
           <p>
             <b>Status:</b>
@@ -146,20 +165,15 @@
                 [
                   'Levan giggles with joy.',
                   'You cradle Levan, and a sweet smile lights up his face.',
-                  'His eyes sparkle with curiosity as Levan explores his surroundings.',
-                  'A burst of laughter escapes from Levan, filling the room with warmth.',
                   'You playfully tickle Levan, eliciting adorable giggles.',
                   "Levan's tiny fingers wrap around yours, forming a heartwarming connection.",
-                  "As you sing a lullaby, Levan's eyes slowly close in peaceful contentment.",
-                  'Levan beams with delight at the colorful toys around him.',
-                  "Levan's infectious laughter brightens up the entire room.",
-                  "Levan's laughter rings out, bringing joy to the moment.",
+                  "You sing a lullaby, and Levan's eyes slowly close as he drifts off to sleep",
+                  "Levan's laughter brightens up the entire room.",
+                  'Levan lets out a joyous laugh.',
                   'You gently rock Levan, and a happy grin spreads across his face.',
-                  "Levan's curious gaze meets yours, creating a heart-to-heart connection.",
                   'A playful giggle escapes Levan, filling the room with delight.',
                   'As you make funny faces, Levan bursts into contagious laughter.',
                   'Levan snuggles close, finding comfort in your warm embrace.',
-                  "Levan's eyes light up with happiness at the sight of a beloved toy.",
                 ].sample(),
               );
             }}
@@ -184,15 +198,15 @@
       <p><b>Location:</b> Tbilisi, Georgia</p>
       <p>
         <b>Savings:</b>
-        <span class="tabular-nums">{formattedFunds}</span>
+        <span class="tabular-nums">₾{formattedFunds}</span>
       </p>
       <div class="w-full">
-        <p class="mb-1">Timewarp: {$timewarp} days / second</p>
+        <p class="mb-1">Timewarp: {$timewarp * 5} days / second</p>
         <input
           class="w-full"
           type="range"
           min="0.1"
-          max="5"
+          max="2"
           step="0.1"
           bind:value={$timewarp}
         />

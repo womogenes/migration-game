@@ -1,21 +1,26 @@
 <script>
   // Automatically shows when curModal is not null.
   // Automatically hides on every action complete.
-  export let curModal;
+  export let modalQueue;
   /*
-    curModal = {
-      title: '...',
-      actions: [
-        { label: '...', action: () => {...} }
-        { label: '...', action: () => {...} }
-        ...
-      ]
-    }
+    modalQueue = [
+      {
+        title: '...',
+        desc: '...',
+        actions: [
+          { label: '...', action: () => {...} }
+          { label: '...', action: () => {...} }
+          ...
+        ]
+      },
+      ...
+    ]
   */
   import { fade } from 'svelte/transition';
+  import Button from '$lib/components/Button.svelte';
 
-  let show = !!$curModal;
-  curModal.subscribe((curModal) => (show = show || curModal));
+  $: show = $modalQueue.length > 0;
+  modalQueue.subscribe((modalQueue) => (show = show || modalQueue));
 </script>
 
 {#if show}
@@ -27,20 +32,22 @@
       class="relative flex w-full max-w-sm flex-col gap-2 border-2 bg-white px-6 py-6 shadow-md shadow-neutral-400"
     >
       <h1 class="absolute -top-2 left-4 bg-white px-2 font-bold leading-none">
-        {$curModal?.title}
+        {@html $modalQueue[0]?.title}
       </h1>
+      <p class="mb-4 leading-tight">{@html $modalQueue[0]?.desc}</p>
       <div class="flex gap-4">
-        {#each $curModal?.actions || [] as action}
-          <button
-            class="btn"
-            on:click={() => {
+        {#each $modalQueue[0]?.actions || [] as action}
+          <Button
+            onClick={() => {
               action.action();
               // Somehow, doing it in this order makes modal data display
               //   even while the modal is fading out. Not complaining.
               show = false;
-              $curModal = null;
-            }}>{action.label}</button
-          >
+              $modalQueue = $modalQueue.slice(1);
+            }}
+            tooltip={action.tooltip}
+            >{action.label}
+          </Button>
         {/each}
       </div>
     </div>

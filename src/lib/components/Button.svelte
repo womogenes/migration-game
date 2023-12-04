@@ -6,9 +6,12 @@
   export let onClick = () => {};
   export let gameDays = null;
   export let cooldown = 0;
+  export let tooltip = '';
 
   let hover = false;
   let lastUsed = $gameDays - cooldown;
+
+  console.log(`tooltip:`, tooltip);
 </script>
 
 <!-- With cooldowns and a tooltip! -->
@@ -34,18 +37,18 @@
         style={`width: ${Math.max(
           (1 - ($gameDays - lastUsed) / cooldown) * 100,
           0,
-        )}%; transition: width 0.5s linear;`}
+        )}%`}
         transition:fade
       ></div>
     {/if}
   </button>
 
-  {#if hover && $$slots.tooltip}
+  {#if hover && tooltip}
     <div
-      class="absolute top-[46px] w-48 border bg-white px-2 py-1 text-sm leading-tight"
+      class="absolute top-full w-48 border bg-white px-2 py-1 text-sm leading-tight"
       transition:fade
     >
-      <slot name="tooltip" />
+      <span>{@html tooltip}</span>
     </div>
   {/if}
 </div>

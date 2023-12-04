@@ -25,7 +25,7 @@
 
   :global(.btn) {
     @apply select-none; /* Disallow selecting button text */
-    @apply border px-2 py-0.5;
+    @apply border px-4 py-0.5 leading-snug;
     @apply transition-colors hover:bg-neutral-100 hover:underline;
     @apply disabled:no-underline disabled:opacity-60;
   }
