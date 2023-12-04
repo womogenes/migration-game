@@ -18,4 +18,21 @@
   :global(body) {
     @apply dark:bg-neutral-900;
   }
+
+  :global(hr) {
+    @apply w-full border-b border-neutral-500;
+  }
+
+  :global(.btn) {
+    @apply select-none; /* Disallow selecting button text */
+    @apply border bg-transparent px-4 py-0.5 pt-1 hover:underline;
+  }
+
+  :global(h1) {
+    @apply text-lg;
+  }
+
+  :global(html) {
+    font-size: 16pt;
+  }
 </style>
