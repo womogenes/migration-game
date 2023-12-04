@@ -34,6 +34,10 @@ function deserialize(str) {
     ) {
       return new Function(`return ${value}`);
     }
+    let x = /.+\(\) (\{(?:.|\s)+\})/g.exec(value);
+    if (x) {
+      return new Function(`return function() ${x[1]}`);
+    }
     return value;
   });
 }

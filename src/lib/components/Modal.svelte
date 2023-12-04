@@ -26,7 +26,7 @@
 {#if show}
   <div
     class="absolute z-20 flex h-full w-full items-start justify-center bg-white bg-opacity-50 pt-40"
-    transition:fade={{ duration: 100 }}
+    transition:fade={{ duration: 500 }}
   >
     <div
       class="relative flex w-full max-w-sm flex-col gap-2 border-2 bg-white px-6 py-6 shadow-md shadow-neutral-400"
@@ -39,6 +39,7 @@
         {#each $modalQueue[0]?.actions || [] as action}
           <Button
             onClick={() => {
+              console.log('action:', action);
               action.action();
               // Somehow, doing it in this order makes modal data display
               //   even while the modal is fading out. Not complaining.

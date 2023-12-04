@@ -20,6 +20,7 @@
   const gameDays = store('game-days', 0);
   onMount(() => {
     const tickInterval = window.setInterval(() => {
+      if ($modalQueue.length > 0) return;
       $gameDays += $timewarp;
       onTick();
     }, 200);
@@ -36,11 +37,18 @@
     amount: Math.random() * 1000 + 6000,
     currency: 'GEL',
   });
-  $: moneyFormatter = new Intl.NumberFormat('en-US', {
+  let moneyFormatter = new Intl.NumberFormat('en-US', {
     maximumFractionDigits: 2,
     minimumFractionDigits: 2,
   });
-  $: formattedFunds = moneyFormatter.format($funds.amount);
+  const formatMoney = (x) => `₾${moneyFormatter.format(x)}`;
+  $: formattedFunds = formatMoney($funds.amount);
+
+  // Montly income
+  const incomes = store('incomes', [
+    { id: 'parental-leave', title: 'Parental leave', amount: 1500 },
+  ]);
+  $: monthlyIncome = $incomes.reduce((a, b) => a + b.amount, 0);
 
   // Log messages in left sidebar
   const logs = store('logs', ['Welcome.']);
@@ -51,11 +59,12 @@
     {
       queued: store('queued-checkups', 0),
       condition: function () {
-        let res = $gameDays > (get(this.queued) + 1) * 30;
-        return res;
+        return (
+          get(this.queued) <= 5 &&
+          $gameDays > ((get(this.queued) + 1) * 365) / 12
+        );
       },
       effect: function () {
-        this.queued.update((x) => x + 1);
         enqueueModal({
           title: 'Medical checkup',
           desc: `You need to bring Levan to the doctor for his ${Math.floor(
@@ -63,16 +72,54 @@
           )}-month checkup.`,
           actions: [
             {
+              id: get(this.queued),
               label: 'ok',
               tooltip: `<div class="flex justify-between"><span>Funds</span><span>&ndash;₾100</span></div>`,
-              action: () => {
+              action: function () {
                 funds.update((x) => {
                   return { ...x, amount: x.amount - 100 };
                 });
+                if (this.id == 5) {
+                  $childStatus *= 0.1;
+                  enqueueModal({
+                    title: 'Test results',
+                    desc: 'They say that Levan has galactosemia. This might lead to complications further down the road.',
+                    actions: [
+                      {
+                        label: 'ok',
+                        action: () => {
+                          $incomes = [
+                            ...$incomes,
+                            { id: 'disability-benefits', amount: 200 },
+                          ];
+                        },
+                      },
+                    ],
+                  });
+                }
               },
             },
           ],
         });
+        this.queued.update((x) => x + 1);
+      },
+    },
+    {
+      queued: store('bill-counter', 1),
+      condition: function () {
+        return $gameDays > (get(this.queued) * 365) / 12 + 5;
+      },
+      effect: function () {
+        const expenses = 1500;
+        $funds.amount -= expenses;
+        addLog(
+          `Your monthly expenses are <b>${formatMoney(
+            expenses,
+          )}</b>. You have <b>${formatMoney(
+            $funds.amount,
+          )}</b> remaining in savings.`,
+        );
+        this.queued.update((x) => x + 1);
       },
     },
   ];
@@ -117,7 +164,10 @@
         <b>Work</b>
         <hr />
         <p><b>Occupation:</b> Security guard</p>
-        <p><b>Status:</b> Paid parental leave (week 1 / 12)</p>
+        <p>
+          <b>Status:</b> Paid parental leave (week {Math.floor($gameDays / 7)} /
+          12)
+        </p>
         <Button
           class="pt-2"
           disabled
@@ -128,9 +178,11 @@
         </Button>
 
         <br />
-        <p><b>Income:</b></p>
+        <p><b>Income</b></p>
         <ol class="list-decimal pl-6">
-          <li>Parental leave (₾1,500 / month)</li>
+          {#each $incomes as income}
+            <li>{income.title} ({formatMoney(income.amount)} / month)</li>
+          {/each}
         </ol>
       </div>
 
@@ -151,7 +203,7 @@
               {#if $childStatus > 0.7}
                 Happy
               {:else if $childStatus > 0.5}
-                Irritated
+                Meh
               {:else if $childStatus > 0.3}
                 Frustrated
               {:else}
@@ -201,7 +253,7 @@
       <p><b>Location:</b> Tbilisi, Georgia</p>
       <p>
         <b>Savings:</b>
-        <span class="tabular-nums">₾{formattedFunds}</span>
+        <span class="tabular-nums">{formattedFunds}</span>
       </p>
       <div class="w-full">
         <p class="mb-1">Timewarp: {($timewarp * 5).toFixed(2)} days / second</p>
@@ -209,7 +261,7 @@
           class="w-full"
           type="range"
           min="0.01"
-          max="0.5"
+          max="10"
           step="0.01"
           bind:value={$timewarp}
         />
