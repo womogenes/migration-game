@@ -11,9 +11,9 @@
     {#each $logs as log}
       <div transition:fade={{ delay: 150, duration: 500 }}>
         {#if log.message}
-          <p class="leading-tight">{log.message}</p>
+          <p class="leading-tight">{@html log.message}</p>
         {:else}
-          <p class="leading-tight">{log}</p>
+          <p class="leading-tight">{@html log}</p>
         {/if}
       </div>
     {/each}
