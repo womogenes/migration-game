@@ -90,7 +90,11 @@
                         action: () => {
                           $incomes = [
                             ...$incomes,
-                            { id: 'disability-benefits', amount: 200 },
+                            {
+                              id: 'disability-benefits',
+                              title: 'Disability benefits',
+                              amount: 200,
+                            },
                           ];
                         },
                       },
@@ -110,7 +114,8 @@
         return $gameDays > (get(this.queued) * 365) / 12 + 5;
       },
       effect: function () {
-        const expenses = 1500;
+        const expenses =
+          1500 * (1.1 + Math.random() * 0.1) + ($gameDays > 12 * 5 ? 500 : 0);
         $funds.amount -= expenses;
         addLog(
           `Your monthly expenses are <b>${formatMoney(
@@ -118,6 +123,22 @@
           )}</b>. You have <b>${formatMoney(
             $funds.amount,
           )}</b> remaining in savings.`,
+        );
+        this.queued.update((x) => x + 1);
+      },
+    },
+    {
+      queued: store('income-counter', 1),
+      condition: function () {
+        return $gameDays > (get(this.queued) * 365) / 12 + 15;
+      },
+      effect: function () {
+        const income = $incomes.reduce((a, b) => a + b.amount, 0);
+        $funds.amount += income;
+        addLog(
+          `Your monthly income is <b>${formatMoney(
+            income,
+          )}</b>. You have <b>${formatMoney($funds.amount)}</b> in savings.`,
         );
         this.queued.update((x) => x + 1);
       },
@@ -154,8 +175,10 @@
   class="relative flex max-h-screen w-full max-w-5xl flex-col overflow-y-hidden px-6 py-4"
 >
   <div class="flex h-full flex-col items-start gap-6 sm:flex-row">
-    <!-- Left column, log -->
-    <Logs {logs} />
+    <!-- Logs column -->
+    <div class="w-96">
+      <Logs {logs} />
+    </div>
 
     <!-- Central column, actions -->
     <div
@@ -244,7 +267,7 @@
     </div>
 
     <!-- Status column -->
-    <div class="flex select-none flex-col gap-2 leading-none md:w-[34em]">
+    <div class="flex w-full max-w-xs select-none flex-col gap-2 leading-none">
       <p>
         <b>Date:</b>
         {gameDate.toLocaleDateString('en-us', {
