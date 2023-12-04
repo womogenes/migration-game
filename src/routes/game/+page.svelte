@@ -4,6 +4,7 @@
 
   import { store } from '$lib/store.js';
   import { onMount } from 'svelte';
+  import Modal from '../../lib/components/Modal.svelte';
 
   // Utilities
   Array.prototype.sample = function () {
@@ -55,30 +56,10 @@
 </script>
 
 <!-- Modal -->
-{#if $curModal}
-  <div
-    class="absolute z-20 flex h-full w-full items-center justify-center bg-neutral-900 bg-opacity-50"
-    transition:fade
-  >
-    <div class="flex w-full max-w-sm flex-col gap-4 border bg-white px-6 py-4">
-      <h1>{$curModal.title}</h1>
-      <div class="flex gap-4">
-        {#each $curModal.actions as action}
-          <button
-            class="btn"
-            on:click={() => {
-              action.action();
-              $curModal = null;
-            }}>{action.label}</button
-          >
-        {/each}
-      </div>
-    </div>
-  </div>
-{/if}
+<Modal {curModal} />
 
 <!-- Main content -->
-<div class="relative flex w-full max-w-5xl flex-col px-6 pb-3 pt-6">
+<div class="relative flex w-full max-w-5xl flex-col px-6 py-6">
   <div class="flex h-full flex-col gap-4 sm:flex-row">
     <!-- Left column, log -->
     <div
@@ -103,19 +84,17 @@
     </div>
 
     <!-- Central column, actions -->
-    <div class="flex-grow select-none overflow-x-hidden sm:px-4">
-      <!-- Headings (tabs) -->
-      <div class="mb-4 flex divide-x" id="tabs">
-        <button
-          class="pr-3 leading-none {$activeTab === 0 && 'underline'}"
-          on:click={() => ($activeTab = 0)}>Tab name</button
-        >
-      </div>
-
-      <!-- Content (three panels) -->
-      <div class="relative flex w-full">
-        <p>Hi there</p>
-      </div>
+    <div class="flex flex-grow select-none flex-col items-start gap-2">
+      <p>Hi there</p>
+      <button
+        class="btn"
+        on:click={() => {
+          $curModal = {
+            title: 'Modal title',
+            actions: [{ label: 'okay', action: () => {} }],
+          };
+        }}>Open modal</button
+      >
     </div>
 
     <!-- Status column -->

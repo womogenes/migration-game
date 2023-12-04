@@ -28,7 +28,10 @@ function serialize(obj) {
 
 function deserialize(str) {
   return JSON.parse(str, function (key, value) {
-    if (typeof value === 'string' && value.indexOf('() =>') === 0) {
+    if (
+      typeof value === 'string' &&
+      (value.indexOf('() =>') === 0 || value.indexOf('function') === 0)
+    ) {
       return new Function(`return ${value}`);
     }
     return value;

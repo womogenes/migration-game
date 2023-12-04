@@ -25,7 +25,8 @@
 
   :global(.btn) {
     @apply select-none; /* Disallow selecting button text */
-    @apply border bg-transparent px-4 py-0.5 pt-1 hover:underline;
+    @apply border bg-transparent px-4 py-0.5 pt-1;
+    @apply transition-colors hover:bg-neutral-100 hover:underline;
   }
 
   :global(h1) {
