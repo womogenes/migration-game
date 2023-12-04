@@ -83,7 +83,7 @@
                   $childStatus *= 0.1;
                   enqueueModal({
                     title: 'Test results',
-                    desc: 'They say that Levan has galactosemia. This might lead to complications further down the road.',
+                    desc: 'They say that Levan has a severe medical condition. This might lead to complications further down the road.',
                     actions: [
                       {
                         label: 'ok',
