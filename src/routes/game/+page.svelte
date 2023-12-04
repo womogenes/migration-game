@@ -163,7 +163,7 @@
       <div class="flex flex-col items-start">
         <b>Work</b>
         <hr />
-        <p><b>Occupation:</b> Security guard</p>
+        <p><b>Occupation:</b> Retail worker</p>
         <p>
           <b>Status:</b> Paid parental leave (week {Math.floor($gameDays / 7)} /
           12)
