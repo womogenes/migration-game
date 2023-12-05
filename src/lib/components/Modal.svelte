@@ -47,7 +47,7 @@
               $modalQueue = $modalQueue.slice(1);
             }}
             tooltip={action.tooltip}
-            >{action.label}
+            >{@html action.label}
           </Button>
         {/each}
       </div>

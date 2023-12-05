@@ -56,11 +56,12 @@
 
   // Import things from js file
   const events = [
+    // Medical checkups
     {
       queued: store('queued-checkups', 0),
       condition: function () {
         return (
-          get(this.queued) <= 5 &&
+          get(this.queued) <= 3 &&
           $gameDays > ((get(this.queued) + 1) * 365) / 12
         );
       },
@@ -73,17 +74,16 @@
           actions: [
             {
               id: get(this.queued),
-              label: 'ok',
-              tooltip: `<div class="flex justify-between"><span>Funds</span><span>&ndash;₾100</span></div>`,
+              label: '&minus;₾100',
               action: function () {
                 funds.update((x) => {
                   return { ...x, amount: x.amount - 100 };
                 });
-                if (this.id == 5) {
+                if (this.id == 3) {
                   $childStatus *= 0.1;
                   enqueueModal({
                     title: 'Test results',
-                    desc: 'They say that Levan has a severe medical condition. This might lead to complications further down the road.',
+                    desc: 'They say that Levan has developed a severe medical condition. This will likely lead to complications further down the road.',
                     actions: [
                       {
                         label: 'ok',
@@ -108,6 +108,7 @@
         this.queued.update((x) => x + 1);
       },
     },
+    // Monthly bills
     {
       queued: store('bill-counter', 1),
       condition: function () {
@@ -127,6 +128,7 @@
         this.queued.update((x) => x + 1);
       },
     },
+    // Monthly incomes
     {
       queued: store('income-counter', 1),
       condition: function () {
@@ -141,6 +143,15 @@
           )}</b>. You have <b>${formatMoney($funds.amount)}</b> in savings.`,
         );
         this.queued.update((x) => x + 1);
+      },
+    },
+    // Removal of parental income
+    {
+      condition: function () {
+        return Math.floor($gameDays / 7) > 12;
+      },
+      effect: function () {
+        $incomes = $incomes.filter((x) => x.id !== 'parental-leave');
       },
     },
   ];
@@ -290,7 +301,7 @@
           class="w-full"
           type="range"
           min="0.01"
-          max="10"
+          max="1"
           step="0.01"
           bind:value={$timewarp}
         />
