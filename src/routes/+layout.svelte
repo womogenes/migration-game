@@ -5,6 +5,19 @@
 <svelte:head>
   <title>Migration game</title>
   <link rel="icon" href="images/favicon.svg" />
+
+  <script
+    async
+    src="https://www.googletagmanager.com/gtag/js?id=G-DVV23VCQZM"
+  ></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag() {
+      dataLayer.push(arguments);
+    }
+    gtag('js', new Date());
+    gtag('config', 'G-DVV23VCQZM');
+  </script>
 </svelte:head>
 
 <main
